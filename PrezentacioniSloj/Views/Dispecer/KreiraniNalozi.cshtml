@@ -1,0 +1,48 @@
+﻿@using System.Data
+@model DataSet
+@{
+    ViewData["Title"] = "Kreirani Nalozi";
+}
+<div class="text-center">
+    <h2>Kreirani nalozi za dodelu</h2>
+</div>
+@if (Model != null && Model.Tables.Count > 0 && Model.Tables[0].Rows.Count > 0)
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Naziv</th>
+                <th>Polazna</th>
+                <th>Krajnja</th>
+                <th>Nosivost (t)</th>
+                <th>Klijent</th>
+                <th>Datum</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (DataRow r in Model.Tables[0].Rows)
+            {
+                var nalogId = Convert.ToInt32(r["NalogID"]);
+                <tr>
+                    <td>@nalogId</td>
+                    <td>@r["Naziv"]</td>
+                    <td>@r["PolaznaDestinacija"]</td>
+                    <td>@r["KrajnjaDestinacija"]</td>
+                    <td>@r["Nosivost"]</td>
+                    <td>@r["Klijent"]</td>
+                    <td>@Convert.ToDateTime(r["DatumKreiranja"]).ToString("dd.MM.yyyy")</td>
+                    <td>
+                        <a class="btn btn-sm btn-primary" asp-controller="Dispecer" asp-action="DodeliNalog" asp-route-id="@nalogId">Dodeli</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <div class="alert alert-info">Nema kreiranih naloga za dodelu.</div>
+}
+<a class="btn btn-secondary" asp-controller="Dispecer" asp-action="Index">Nazad</a>

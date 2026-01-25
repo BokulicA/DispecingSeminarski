@@ -1,0 +1,45 @@
+﻿@using System.Data
+@model DataSet
+@{
+    ViewData["Title"] = "Svi Nalozi";
+}
+<div class="text-center">
+    <h2>Pregled svih naloga</h2>
+</div>
+@if (Model != null && Model.Tables.Count > 0 && Model.Tables[0].Rows.Count > 0)
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Naziv</th>
+                <th>Polazna</th>
+                <th>Krajnja</th>
+                <th>Klijent</th>
+                <th>Vozac</th>
+                <th>Kamion</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (DataRow r in Model.Tables[0].Rows)
+            {
+                <tr>
+                    <td>@r["NalogID"]</td>
+                    <td>@r["Naziv"]</td>
+                    <td>@r["PolaznaDestinacija"]</td>
+                    <td>@r["KrajnjaDestinacija"]</td>
+                    <td>@r["Klijent"]</td>
+                    <td>@(r["Vozac"] != DBNull.Value ? r["Vozac"] : "-")</td>
+                    <td>@(r["Registracija"] != DBNull.Value ? r["Registracija"] : "-")</td>
+                    <td>@r["Status"]</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <div class="alert alert-info">Nema naloga.</div>
+}
+<a class="btn btn-secondary" asp-controller="Dispecer" asp-action="Index">Nazad</a>

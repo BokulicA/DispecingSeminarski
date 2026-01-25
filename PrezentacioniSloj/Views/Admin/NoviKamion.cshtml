@@ -1,0 +1,38 @@
+﻿@model PrezentacioniSloj.Models.NoviKamionModel
+@{
+    ViewData["Title"] = "Novi Kamion";
+}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <h2 class="text-center">Dodaj novi kamion</h2>
+
+        <form asp-action="NoviKamion" method="post">
+            <div asp-validation-summary="All" class="text-danger"></div>
+
+            <div class="form-group mb-3">
+                <label asp-for="Registracija"></label>
+                <input asp-for="Registracija" class="form-control" placeholder="BG123AB" />
+                <span asp-validation-for="Registracija" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="Marka"></label>
+                <input asp-for="Marka" class="form-control" placeholder="Mercedes Actros" />
+                <span asp-validation-for="Marka" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="Nosivost"></label>
+                <input asp-for="Nosivost" type="number" step="0.1" class="form-control" placeholder="20.5" />
+                <span asp-validation-for="Nosivost" class="text-danger"></span>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Dodaj</button>
+            <a asp-action="Kamioni" class="btn btn-secondary">Nazad</a>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+}

@@ -1,0 +1,48 @@
+﻿@using System.Data
+@model DataSet
+@{
+    ViewData["Title"] = "Moji Nalozi";
+}
+<div class="text-center">
+    <h2>Moji nalozi</h2>
+    <a class="btn btn-success mb-3" asp-controller="Klijent" asp-action="NoviNalog">Kreiraj novi</a>
+</div>
+@if (Model != null && Model.Tables.Count > 0 && Model.Tables[0].Rows.Count > 0)
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Naziv</th>
+                <th>Polazna</th>
+                <th>Krajnja</th>
+                <th>Nosivost (t)</th>
+                <th>Vozac</th>
+                <th>Kamion</th>
+                <th>Status</th>
+                <th>Datum</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (DataRow r in Model.Tables[0].Rows)
+            {
+                <tr>
+                    <td>@r["NalogID"]</td>
+                    <td>@r["Naziv"]</td>
+                    <td>@r["PolaznaDestinacija"]</td>
+                    <td>@r["KrajnjaDestinacija"]</td>
+                    <td>@r["Nosivost"]</td>
+                    <td>@(r["Vozac"] != DBNull.Value ? r["Vozac"] : "-")</td>
+                    <td>@(r["Registracija"] != DBNull.Value ? r["Registracija"] : "-")</td>
+                    <td>@r["Status"]</td>
+                    <td>@Convert.ToDateTime(r["DatumKreiranja"]).ToString("dd.MM.yyyy")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <div class="alert alert-info">Nemate jos naloga.</div>
+}
+<a class="btn btn-secondary" asp-controller="Klijent" asp-action="Index">Nazad</a>

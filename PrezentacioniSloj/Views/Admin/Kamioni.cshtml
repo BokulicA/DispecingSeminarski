@@ -1,0 +1,44 @@
+﻿@using System.Data
+@model DataSet
+@{
+    ViewData["Title"] = "Kamioni";
+}
+<div class="text-center">
+    <h2>Kamioni</h2>
+</div>
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">@TempData["Success"]</div>
+}
+<div class="mb-3">
+    <a asp-action="NoviKamion" class="btn btn-success">Dodaj novi kamion</a>
+</div>
+@if (Model != null && Model.Tables.Count > 0 && Model.Tables[0].Rows.Count > 0)
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Registracija</th>
+                <th>Marka</th>
+                <th>Nosivost (t)</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (DataRow r in Model.Tables[0].Rows)
+            {
+                <tr>
+                    <td>@r["Registracija"]</td>
+                    <td>@r["Marka"]</td>
+                    <td>@r["Nosivost"]</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <div class="alert alert-info">Nema kamiona.</div>
+}
+<div class="mt-2">
+    <a asp-action="Index" class="btn btn-secondary">Nazad</a>
+</div>

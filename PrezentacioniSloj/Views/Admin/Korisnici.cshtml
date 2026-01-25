@@ -1,0 +1,48 @@
+﻿@using System.Data
+@model DataSet
+@{
+    ViewData["Title"] = "Korisnici";
+}
+<div class="text-center">
+    <h2>Korisnici</h2>
+</div>
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">@TempData["Success"]</div>
+}
+<div class="mb-3">
+    <a asp-action="NoviKorisnik" class="btn btn-success">Dodaj novog korisnika</a>
+</div>
+@if (Model != null && Model.Tables.Count > 0 && Model.Tables[0].Rows.Count > 0)
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Ime</th>
+                <th>Prezime</th>
+                <th>Korisnicko ime</th>
+                <th>Tip korisnika</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (DataRow r in Model.Tables[0].Rows)
+            {
+                <tr>
+                    <td>@r["KorisnikID"]</td>
+                    <td>@r["Ime"]</td>
+                    <td>@r["Prezime"]</td>
+                    <td>@r["KorisnickoIme"]</td>
+                    <td>@r["TipKorisnika"]</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <div class="alert alert-info">Nema korisnika.</div>
+}
+<div class="mt-2">
+    <a asp-action="Index" class="btn btn-secondary">Nazad</a>
+</div>

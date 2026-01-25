@@ -1,0 +1,41 @@
+﻿@model PrezentacioniSloj.Models.NoviNalogModel
+@{
+    ViewData["Title"] = "Novi Nalog";
+}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <h2 class="text-center">Kreiraj novi transportni nalog</h2>
+        <form asp-controller="Klijent" asp-action="NoviNalog" method="post">
+            <div asp-validation-summary="All" class="text-danger"></div>
+
+            <div class="form-group mb-3">
+                <label asp-for="Naziv"></label>
+                <input asp-for="Naziv" class="form-control" placeholder="Transport robe" />
+                <span asp-validation-for="Naziv" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="PolaznaDestinacija"></label>
+                <input asp-for="PolaznaDestinacija" class="form-control" placeholder="Beograd" />
+                <span asp-validation-for="PolaznaDestinacija" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="KrajnjaDestinacija"></label>
+                <input asp-for="KrajnjaDestinacija" class="form-control" placeholder="Novi Sad" />
+                <span asp-validation-for="KrajnjaDestinacija" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="Nosivost"></label>
+                <input asp-for="Nosivost" class="form-control" type="number" step="0.1" placeholder="10.5" />
+                <span asp-validation-for="Nosivost" class="text-danger"></span>
+            </div>
+
+            <div class="text-center">
+                <button type="submit" class="btn btn-primary">Kreiraj</button>
+                <a class="btn btn-secondary" asp-controller="Klijent" asp-action="MojiNalozi">Nazad</a>
+            </div>
+        </form>
+    </div>
+</div>
