@@ -148,7 +148,7 @@ namespace DomenskiSloj
             return true;
         }
 
-        // 5) Validacija broja telefona vozača (mora biti tačno 10 cifara)
+        // 5) Validacija broja telefona vozača (mora biti 9 ili 10 cifara)
         public bool ValidacijaBrojaTelefona(string brojTelefona)
         {
             if (string.IsNullOrWhiteSpace(brojTelefona))
@@ -159,9 +159,9 @@ namespace DomenskiSloj
 
             string ociscen = brojTelefona.Trim();
 
-            if (ociscen.Length != 10)
+            if (ociscen.Length != 10 && ociscen.Length != 9)
             {
-                LastError = "Broj telefona mora imati tačno 10 cifara.";
+                LastError = "Broj telefona mora imati 9 ili 10 cifara.";
                 return false;
             }
 
@@ -178,7 +178,7 @@ namespace DomenskiSloj
             return true;
         }
 
-        // 6) Validacija registracije kamiona (ne može biti prazna, min 3, max 20 karaktera)
+        // 6) Validacija registracije kamiona (ne može biti prazna, min 7, max 10 karaktera)
         public bool ValidacijaRegistracije(string registracija)
         {
             if (string.IsNullOrWhiteSpace(registracija))
@@ -189,15 +189,15 @@ namespace DomenskiSloj
 
             string ociscena = registracija.Trim();
 
-            if (ociscena.Length < 3)
+            if (ociscena.Length < 7)
             {
-                LastError = "Registracija mora imati najmanje 3 karaktera.";
+                LastError = "Registracija mora imati najmanje 7 karaktera.";
                 return false;
             }
 
-            if (ociscena.Length > 20)
+            if (ociscena.Length > 10)
             {
-                LastError = "Registracija može imati najviše 20 karaktera.";
+                LastError = "Registracija može imati najviše 10 karaktera.";
                 return false;
             }
 

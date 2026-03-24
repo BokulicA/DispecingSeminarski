@@ -5,7 +5,7 @@ namespace PrezentacioniSloj.Models
     public class NoviKamionModel
     {
         [Required(ErrorMessage = "Registracija je obavezna.")]
-        [StringLength(20, MinimumLength = 3, ErrorMessage = "Registracija mora imati izmedju 3 i 20 karaktera.")]
+        [StringLength(10, MinimumLength = 7, ErrorMessage = "Registracija mora imati izmedju 7 i 10 karaktera.")]
         [Display(Name = "Registracija")]
         public string Registracija { get; set; }
 
