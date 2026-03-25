@@ -1,0 +1,414 @@
+USE [master]
+GO
+
+CREATE DATABASE [TransportNalozi]
+GO
+
+USE [TransportNalozi]
+GO
+
+-- Tabela korisnika (Admin, Dispečer, Klijent)
+CREATE TABLE [dbo].[Korisnik](
+    [KorisnikID] int IDENTITY(1,1) NOT NULL PRIMARY KEY,
+    [Prezime] nvarchar(40) NOT NULL,
+    [Ime] nvarchar(30) NOT NULL,
+    [KorisnickoIme] nvarchar(20) UNIQUE NOT NULL,
+    [Lozinka] nvarchar(30) NOT NULL,
+    [TipKorisnika] nvarchar(20) NOT NULL
+)
+GO
+
+-- Dozvoljeni tipovi korisnika
+ALTER TABLE [dbo].[Korisnik]
+ADD CONSTRAINT CK_Korisnik_TipKorisnika
+CHECK (TipKorisnika IN (N'Admin', N'Dispečer', N'Klijent'));
+GO
+
+-- Tabela vozača
+CREATE TABLE [dbo].[Vozac](
+    [VozacID] int IDENTITY(1,1) NOT NULL PRIMARY KEY,
+    [Ime] nvarchar(30) NOT NULL,
+    [Prezime] nvarchar(40) NOT NULL,
+    [BrojTelefona] nvarchar(10) NOT NULL
+)
+GO
+
+-- Tabela kamiona
+CREATE TABLE [dbo].[Kamion](
+    [Registracija] nvarchar(20) NOT NULL PRIMARY KEY,
+    [Marka] nvarchar(50) NOT NULL,
+    [Nosivost] decimal(10,2) NOT NULL
+)
+GO
+
+-- Tabela transportnih naloga
+CREATE TABLE [dbo].[TransportniNalog](
+    [NalogID] int IDENTITY(1,1) NOT NULL PRIMARY KEY,
+    [Naziv] nvarchar(100) NOT NULL,
+    [PolaznaDestinacija] nvarchar(100) NOT NULL,
+    [KrajnjaDestinacija] nvarchar(100) NOT NULL,
+    [Nosivost] decimal(10,2) NOT NULL,
+    [KlijentID] int NOT NULL,
+    [VozacID] int NULL,
+    [Registracija] nvarchar(20) NULL,
+    [DatumKreiranja] datetime NOT NULL DEFAULT GETDATE(),
+    [Status] nvarchar(20) NOT NULL DEFAULT N'Kreiran'
+)
+GO
+
+-- Dozvoljeni statusi naloga
+ALTER TABLE [dbo].[TransportniNalog]
+ADD CONSTRAINT CK_TransportniNalog_Status
+CHECK (Status IN (N'Kreiran', N'Dodeljen'));
+GO
+
+-- Foreign keys
+ALTER TABLE [dbo].[TransportniNalog] ADD CONSTRAINT
+FK_TransportniNalog_Klijent FOREIGN KEY([KlijentID])
+REFERENCES [dbo].[Korisnik] ([KorisnikID])
+ON UPDATE CASCADE
+GO
+
+ALTER TABLE [dbo].[TransportniNalog] ADD CONSTRAINT
+FK_TransportniNalog_Vozac FOREIGN KEY([VozacID])
+REFERENCES [dbo].[Vozac] ([VozacID])
+GO
+
+ALTER TABLE [dbo].[TransportniNalog] ADD CONSTRAINT
+FK_TransportniNalog_Kamion FOREIGN KEY([Registracija])
+REFERENCES [dbo].[Kamion] ([Registracija])
+GO
+
+-- Inicijalni admin korisnik
+INSERT INTO Korisnik (Prezime, Ime, KorisnickoIme, Lozinka, TipKorisnika) 
+VALUES (N'Admin', N'Admin', N'admin', N'root', N'Admin');
+GO
+
+-- ========== VIEWS ==========
+
+-- Pregled svih naloga
+CREATE VIEW PregledNaloga AS
+SELECT
+    TransportniNalog.NalogID,
+    TransportniNalog.Naziv,
+    TransportniNalog.PolaznaDestinacija,
+    TransportniNalog.KrajnjaDestinacija,
+    TransportniNalog.Nosivost,
+    Korisnik.Ime + ' ' + Korisnik.Prezime AS Klijent,
+    Vozac.Ime + ' ' + Vozac.Prezime AS Vozac,
+    TransportniNalog.Registracija,
+    TransportniNalog.DatumKreiranja,
+    TransportniNalog.Status
+FROM
+    TransportniNalog
+    INNER JOIN Korisnik ON TransportniNalog.KlijentID = Korisnik.KorisnikID
+    LEFT JOIN Vozac ON TransportniNalog.VozacID = Vozac.VozacID
+GO
+
+-- Pregled kreiranih naloga (još nedodeljenih)
+CREATE VIEW PregledKreiranihNaloga AS
+SELECT
+    TransportniNalog.NalogID,
+    TransportniNalog.Naziv,
+    TransportniNalog.PolaznaDestinacija,
+    TransportniNalog.KrajnjaDestinacija,
+    TransportniNalog.Nosivost,
+    Korisnik.Ime + ' ' + Korisnik.Prezime AS Klijent,
+    TransportniNalog.DatumKreiranja
+FROM 
+    TransportniNalog
+    INNER JOIN Korisnik ON TransportniNalog.KlijentID = Korisnik.KorisnikID
+WHERE TransportniNalog.Status = N'Kreiran' 
+  AND TransportniNalog.VozacID IS NULL 
+  AND TransportniNalog.Registracija IS NULL
+GO
+
+-- ========== STORED PROCEDURES - KORISNIK ==========
+
+CREATE PROCEDURE [NoviKorisnik]
+(
+    @Prezime nvarchar(40),
+    @Ime nvarchar(30),
+    @KorisnickoIme nvarchar(20),
+    @Lozinka nvarchar(30),
+    @TipKorisnika nvarchar(20)
+)
+AS
+BEGIN
+    INSERT INTO Korisnik(Prezime, Ime, KorisnickoIme, Lozinka, TipKorisnika) 
+    VALUES (@Prezime, @Ime, @KorisnickoIme, @Lozinka, @TipKorisnika)
+END
+GO
+
+CREATE PROCEDURE [ObrisiKorisnika]
+(
+    @KorisnikID int
+)
+AS
+BEGIN
+    DELETE FROM Korisnik WHERE KorisnikID = @KorisnikID
+END
+GO
+
+CREATE PROCEDURE [IzmeniKorisnika]
+(
+    @KorisnikID int,
+    @Prezime nvarchar(40),
+    @Ime nvarchar(30),
+    @KorisnickoIme nvarchar(20),
+    @Lozinka nvarchar(30)
+)
+AS
+BEGIN
+    UPDATE Korisnik 
+    SET Prezime = @Prezime, 
+        Ime = @Ime, 
+        KorisnickoIme = @KorisnickoIme, 
+        Lozinka = @Lozinka
+    WHERE KorisnikID = @KorisnikID
+END
+GO
+
+CREATE PROCEDURE [DajSveKorisnike]
+AS
+BEGIN
+    SELECT * FROM Korisnik
+END
+GO
+
+CREATE PROCEDURE [DajKorisnikaPoID]
+(
+    @KorisnikID int
+)
+AS
+BEGIN
+    SELECT * FROM Korisnik WHERE KorisnikID = @KorisnikID
+END
+GO
+
+CREATE PROCEDURE [DajKorisnikaPoKorisnickomImenu]
+(
+    @KorisnickoIme nvarchar(20)
+)
+AS
+BEGIN
+    SELECT * FROM Korisnik WHERE KorisnickoIme = @KorisnickoIme
+END
+GO
+
+-- ========== STORED PROCEDURES - VOZAČ ==========
+
+CREATE PROCEDURE [NoviVozac]
+(
+    @Ime nvarchar(30),
+    @Prezime nvarchar(40),
+    @BrojTelefona nvarchar(10)
+)
+AS
+BEGIN
+    INSERT INTO Vozac(Ime, Prezime, BrojTelefona)
+    VALUES (@Ime, @Prezime, @BrojTelefona)
+END
+GO
+
+CREATE PROCEDURE [ObrisiVozaca]
+(
+    @VozacID int
+)
+AS
+BEGIN
+    DELETE FROM Vozac WHERE VozacID = @VozacID
+END
+GO
+
+CREATE PROCEDURE [IzmeniVozaca]
+(
+    @VozacID int,
+    @Ime nvarchar(30),
+    @Prezime nvarchar(40),
+    @BrojTelefona nvarchar(10)
+)
+AS
+BEGIN
+    UPDATE Vozac 
+    SET Ime = @Ime,
+        Prezime = @Prezime,
+        BrojTelefona = @BrojTelefona
+    WHERE VozacID = @VozacID
+END
+GO
+
+CREATE PROCEDURE [DajSveVozace]
+AS
+BEGIN
+    SELECT * FROM Vozac
+END
+GO
+
+CREATE PROCEDURE [DajVozacaPoID]
+(
+    @VozacID int
+)
+AS
+BEGIN
+    SELECT * FROM Vozac WHERE VozacID = @VozacID
+END
+GO
+
+-- ========== STORED PROCEDURES - KAMION ==========
+
+CREATE PROCEDURE [NoviKamion]
+(
+    @Registracija nvarchar(20),
+    @Marka nvarchar(50),
+    @Nosivost decimal(10,2)
+)
+AS
+BEGIN
+    INSERT INTO Kamion(Registracija, Marka, Nosivost)
+    VALUES (@Registracija, @Marka, @Nosivost)
+END
+GO
+
+CREATE PROCEDURE [ObrisiKamion]
+(
+    @Registracija nvarchar(20)
+)
+AS
+BEGIN
+    DELETE FROM Kamion WHERE Registracija = @Registracija
+END
+GO
+
+CREATE PROCEDURE [IzmeniKamion]
+(
+    @Registracija nvarchar(20),
+    @Marka nvarchar(50),
+    @Nosivost decimal(10,2)
+)
+AS
+BEGIN
+    UPDATE Kamion 
+    SET Marka = @Marka,
+        Nosivost = @Nosivost
+    WHERE Registracija = @Registracija
+END
+GO
+
+CREATE PROCEDURE [DajSveKamione]
+AS
+BEGIN
+    SELECT * FROM Kamion
+END
+GO
+
+CREATE PROCEDURE [DajKamionPoRegistraciji]
+(
+    @Registracija nvarchar(20)
+)
+AS
+BEGIN
+    SELECT * FROM Kamion WHERE Registracija = @Registracija
+END
+GO
+
+-- ========== STORED PROCEDURES - TRANSPORTNI NALOG ==========
+
+CREATE PROCEDURE [NoviTransportniNalog]
+(
+    @Naziv nvarchar(100),
+    @PolaznaDestinacija nvarchar(100),
+    @KrajnjaDestinacija nvarchar(100),
+    @Nosivost decimal(10,2),
+    @KlijentID int
+)
+AS
+BEGIN
+    INSERT INTO TransportniNalog(Naziv, PolaznaDestinacija, KrajnjaDestinacija, Nosivost, KlijentID, Status)
+    VALUES (@Naziv, @PolaznaDestinacija, @KrajnjaDestinacija, @Nosivost, @KlijentID, N'Kreiran')
+END
+GO
+
+CREATE PROCEDURE [DodeliNalog]
+(
+    @NalogID int,
+    @VozacID int,
+    @Registracija nvarchar(20)
+)
+AS
+BEGIN
+    BEGIN TRANSACTION;
+
+    BEGIN TRY
+        DECLARE @NosivostNaloga decimal(10,2);
+        DECLARE @NosivostKamiona decimal(10,2);
+
+        -- Provera nosivosti (nosivost kamiona >= nosivost naloga)
+        SELECT @NosivostNaloga = TransportniNalog.Nosivost
+        FROM TransportniNalog
+        WHERE TransportniNalog.NalogID = @NalogID;
+
+        SELECT @NosivostKamiona = Kamion.Nosivost
+        FROM Kamion
+        WHERE Kamion.Registracija = @Registracija;
+
+        IF @NosivostKamiona < @NosivostNaloga
+        BEGIN
+            RAISERROR(N'Nosivost kamiona je manja od nosivosti naloga.', 16, 1);
+        END
+
+        -- Dodela naloga
+        UPDATE TransportniNalog
+        SET TransportniNalog.VozacID = @VozacID,
+            TransportniNalog.Registracija = @Registracija,
+            TransportniNalog.Status = N'Dodeljen'
+        WHERE TransportniNalog.NalogID = @NalogID;
+
+        COMMIT TRANSACTION;
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION;
+        THROW;
+    END CATCH
+END
+GO
+
+CREATE PROCEDURE [DajSveNaloge]
+AS
+BEGIN
+    SELECT * FROM PregledNaloga
+END
+GO
+
+CREATE PROCEDURE [DajKreiraneNaloge]
+AS
+BEGIN
+    SELECT * FROM PregledKreiranihNaloga
+END
+GO
+
+CREATE PROCEDURE [DajNalogePoKlijentu]
+(
+    @KlijentID int
+)
+AS
+BEGIN
+    SELECT * FROM PregledNaloga
+    WHERE PregledNaloga.Klijent IN 
+    (
+        SELECT Korisnik.Ime + ' ' + Korisnik.Prezime 
+        FROM Korisnik 
+        WHERE Korisnik.KorisnikID = @KlijentID
+    )
+END
+GO
+
+CREATE PROCEDURE [DajNalogPoID]
+(
+    @NalogID int
+)
+AS
+BEGIN
+    SELECT * FROM PregledNaloga WHERE PregledNaloga.NalogID = @NalogID
+END
+GO
